@@ -1,0 +1,114 @@
+.data
+msg_input1:     .asciiz "Enter 1st number: "
+msg_input2:     .asciiz "Enter 2nd number: "
+msg_choose_op:  .asciiz "Choose operation (+, -, *, /): "
+msg_result:     .asciiz "\nResult: "
+msg_invalid_op: .asciiz "\nInvalid operation. Please try again.\n"
+msg_div_zero:   .asciiz "\nError: Division by zero is not allowed.\n"
+msg_restart:    .asciiz "\nDo you want to perform another operation? (y/n): "
+
+.text
+
+main:
+loop_start:
+    # Prompt for 1st number
+    li $v0, 4                  
+    la $a0, msg_input1         
+    syscall                    
+
+    # Read 1st number
+    li $v0, 5                  
+    syscall                    
+    move $t0, $v0              
+
+    # Prompt for 2nd number
+    li $v0, 4                 
+    la $a0, msg_input2         
+    syscall                    
+
+    # Read 2nd number
+    li $v0, 5                  
+    syscall                    
+    move $t1, $v0             
+
+    # Prompt for operation
+    li $v0, 4                  
+    la $a0, msg_choose_op     
+    syscall                   
+
+    # Read operation
+    li $v0, 12                 
+    syscall                    
+    move $t2, $v0              
+
+    li $v0, 4                  
+    la $a0, msg_result        
+    syscall                    
+    
+    
+
+    # Determine which operation to perform
+    li $t3, '+'               
+    beq $t2, $t3, add_op     
+
+    li $t3, '-'                 
+    beq $t2, $t3, sub_op      
+    
+    li $t3, '*'                
+    beq $t2, $t3, mul_op       
+    
+    li $t3, '/'                
+    beq $t2, $t3, div_op     
+    
+invalid_op:
+    li $v0, 4
+    la $a0, msg_invalid_op
+    syscall
+    j loop_start
+
+# Addition operation
+add_op:
+    add $a0, $t0, $t1         
+    j print_result                   
+# Subtraction operation
+sub_op:
+    sub $a0, $t0, $t1         
+    j print_result
+# Multiplication operation
+mul_op:
+    mul $a0, $t0, $t1         
+    j print_result
+div_op:
+    div $t0, $t1              
+    mflo $a0                   
+    j print_result
+    
+div_by_zero:
+    li $v0, 4
+    la $a0, msg_div_zero
+    syscall
+    j loop_start
+
+print_result:
+    li $v0, 1                  # Print integer syscall
+    syscall 
+
+    li $v0, 4
+    la $a0, msg_restart
+    syscall
+
+    li $v0, 12
+    syscall
+    move $t3, $v0
+
+    li $t4, 'y'
+    beq $t3, $t4, loop_start
+
+    li $t4, 'n'
+    beq $t3, $t4, program_exit
+
+    j loop_start
+
+program_exit:
+    li $v0, 10
+    syscall
